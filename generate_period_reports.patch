@@ -1,0 +1,66 @@
+diff --git a/backend/scripts/generate_period_reports.py b/backend/scripts/generate_period_reports.py
+index d49a632..d51f755 100644
+--- a/backend/scripts/generate_period_reports.py
++++ b/backend/scripts/generate_period_reports.py
+@@ -229,7 +229,6 @@ def build_funnel_tree(
+   <h3 style="color:{"#7dd3fc" if tag_cls == "onsite" else "#c4b5fd"};font-size:15px;margin-bottom:14px">
+     <span class="channel-tag {tag_cls}">{label}</span>
+   </h3>
+-  {metrics_html}
+   <div class="funnel" style="margin-top:16px">
+     {not_sent_html}
+ 
+@@ -290,6 +289,7 @@ def build_funnel_tree(
+     </div>
+ 
+   </div>
++  {metrics_html}
+ """
+ 
+ 
+@@ -636,13 +636,23 @@ tr.current{{background:#1a2535}}
+   </div>
+ </div>
+ 
++<!-- 0. 개요 -->
++<div class="section">
++  <h2>0. 개요</h2>
++  <div style="font-size:13px;color:#cbd5e1;line-height:1.8">
++    <div><b style="color:#f59e0b">시스템</b> — 카카오톡으로 들어온 가격 변동 요청을 LLM이 필드 단위로 추출하고, Slack 승인 한 번으로 어드민까지 자동 등록.</div>
++    <div style="margin-top:6px"><b style="color:#f59e0b">배경</b> — 기존에는 운영팀이 카톡을 일일이 읽고 수기 등록. 골프장 증가에 비례해 인력 부담과 오타·누락 리스크 확대.</div>
++    <div style="margin-top:6px"><b style="color:#f59e0b">측정 지표</b> — 자동처리율 · 필드 정확도 · 처리시간.</div>
++  </div>
++</div>
++
+ <!-- 1. 전체 워크플로우 인입 → 분류 -->
+ <div class="section">
+   <h2>1. 워크플로우 전체 인입</h2>
+   <div class="desc">워크플로우로 들어온 모든 건수에서 유형별 분류</div>
+   <div class="kpi-grid">
+     {build_kpi_card("전체 인입", f"{wf_total_adj:,}건", "워크플로우 총 인입량", "highlight")}
+-    {build_kpi_card("일반 문의", f"{wf_general_adj:,}건", f"전체의 {wf_general_adj_pct:.1f}% (폴백 {fallback_to_general:,}건 포함)", "blue")}
++    {build_kpi_card("일반 문의", f"{wf_general_adj:,}건", f"전체의 {wf_general_adj_pct:.1f}%", "blue")}
+     {build_kpi_card("운영팀 메시지", f"{wf_operator:,}건", f"전체의 {wf_operator_adj_pct:.1f}%", "")}
+     {build_kpi_card("가격 조정", f"{wf_price_adj:,}건", f"전체의 {wf_price_adj_pct:.1f}% — 슬랙 발송된 건만", "green")}
+   </div>
+@@ -652,17 +662,16 @@ tr.current{{background:#1a2535}}
+     <div style="background:#6b7280;width:{wf_operator_adj_pct:.1f}%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff;min-width:60px">운영팀 {wf_operator_adj_pct:.0f}%</div>
+     <div style="background:#10b981;width:{wf_price_adj_pct:.1f}%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff;min-width:60px">가격조정 {wf_price_adj_pct:.0f}%</div>
+   </div>
+-  <div style="margin-top:8px;font-size:12px;color:#7a8b9f">가격조정 분류 후 추출 0건인 {fallback_to_general:,}건은 일반문의로 재분류. <b>가격 조정 {wf_price_adj:,}건</b>만 슬랙 발송 후 승인/종료 워크플로우 진행.</div>
+ </div>
+ 
+ <!-- 2. 가격조정 상세: 채널 분류 -->
+ <div class="section">
+   <h2>2. 가격조정 → 채널 분류</h2>
+-  <div class="desc">가격조정 {wf_price:,}건을 골프장 로직 타입으로 현장결제/예치금선결제 분류</div>
++  <div class="desc">가격조정 {wf_price:,}건을 골프장 결제 방식에 따라 분류</div>
+   <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+     {build_kpi_card("가격조정 총건수", f"{total['total']:,}건", "승인/종료 워크플로우 대상", "highlight")}
+-    {build_kpi_card("현장결제", f"{onsite['total']:,}건", f"가격조정의 {onsite['total'] / total['total'] * 100:.0f}% · 기본 로직", "blue")}
+-    {build_kpi_card("예치금/선결제", f"{deposit['total']:,}건", f"가격조정의 {deposit['total'] / total['total'] * 100:.0f}% · 변환 로직(PP/OS)", "yellow")}
++    {build_kpi_card("현장결제", f"{onsite['total']:,}건", f"가격조정의 {onsite['total'] / total['total'] * 100:.0f}%", "blue")}
++    {build_kpi_card("예치금/선결제", f"{deposit['total']:,}건", f"가격조정의 {deposit['total'] / total['total'] * 100:.0f}%", "yellow")}
+   </div>
+ </div>
+ 
